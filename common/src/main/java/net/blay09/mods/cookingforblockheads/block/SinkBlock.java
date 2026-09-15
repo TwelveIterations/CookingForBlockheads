@@ -1,11 +1,10 @@
 package net.blay09.mods.cookingforblockheads.block;
 
-import net.blay09.mods.balm.Balm;
-import net.blay09.mods.balm.platform.fluid.FluidTank;
 import net.blay09.mods.cookingforblockheads.block.entity.ModBlockEntities;
 import net.blay09.mods.cookingforblockheads.block.entity.SinkBlockEntity;
 import net.blay09.mods.cookingforblockheads.item.ModItems;
 import net.blay09.mods.cookingforblockheads.tag.ModBlockTags;
+import net.blay09.mods.cookingforblockheads.util.FluidInteractions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
@@ -15,8 +14,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -27,7 +24,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
@@ -89,27 +85,11 @@ public class SinkBlock extends BaseKitchenBlock {
         } else {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SinkBlockEntity sink) {
-                FluidTank fluidTank = sink.getFluidTank();
-                if (!Balm.hooks().useFluidTank(state, level, pos, player, hand, blockHitResult)) {
-                    // Special case for bottles, they can hold 1/3 of a bucket
-                    if (itemStack.getItem() == Items.GLASS_BOTTLE) {
-                        int simulated = fluidTank.drain(0, Fluids.WATER, 333, true);
-                        if (simulated == 333) {
-                            fluidTank.drain(0, Fluids.WATER, 333, false);
-                            ItemStack filledBottle = PotionContents.createItemStack(Items.POTION, Potions.WATER);
-                            if (itemStack.getCount() == 1) {
-                                player.setItemInHand(hand, filledBottle);
-                            } else if (player.addItem(filledBottle)) {
-                                itemStack.shrink(1);
-                            }
-                            level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.NEUTRAL, 1f, 1f);
-                        } else {
-                            spawnParticlesAndPlaySound(level, pos, state);
-                        }
-                    } else {
-                        spawnParticlesAndPlaySound(level, pos, state);
-                    }
+                if (FluidInteractions.tryInteractWithWaterTank(sink.getFluidTank(), itemStack, level, pos, player, hand)) {
+                    return InteractionResult.SUCCESS;
                 }
+
+                spawnParticlesAndPlaySound(level, pos, state);
                 return InteractionResult.SUCCESS;
             }
         }
