@@ -227,7 +227,7 @@ public class FridgeBlock extends BaseKitchenBlock {
 
     @Override
     protected BlockState getDyedStateOf(BlockState state, @Nullable DyeColor color) {
-        return ModBlocks.fridges.get(color)
+        return ModBlocks.fridges.get(color != null ? color : DyeColor.WHITE)
                 .defaultBlockState()
                 .setValue(FACING, state.getValue(FACING))
                 .setValue(MODEL_TYPE, state.getValue(MODEL_TYPE))
