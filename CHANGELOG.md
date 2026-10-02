@@ -1,3 +1,1 @@
-- Added recipes taking dyed terracotta directly
-- Fixed crash when result ItemStackTemplate of a recipe is null
-- Fixed crash when moving items to oven
+- Fixed crash when bone-mealing fridge
