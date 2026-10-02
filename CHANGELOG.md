@@ -1,1 +1,1 @@
-- Updated to Minecraft 26.3
+- Fixed crash when bone-mealing fridge
