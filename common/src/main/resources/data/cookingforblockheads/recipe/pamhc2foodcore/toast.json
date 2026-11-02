@@ -16,12 +16,24 @@
       "values": [
         "pamhc2foodcore"
       ]
+    },
+    {
+      "condition": "fabric:registry_contains",
+      "registry": "minecraft:item",
+      "values": [
+        "pamhc2foodcore:toastitem"
+      ]
     }
   ],
   "neoforge:conditions": [
     {
       "type": "neoforge:mod_loaded",
       "modid": "pamhc2foodcore"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:item",
+      "value": "pamhc2foodcore:toastitem"
     }
   ]
 }
