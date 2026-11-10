@@ -155,7 +155,7 @@ public class KitchenMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return kitchenMenuAccess.stillValid(player);
     }
 
     @Override
