@@ -18,6 +18,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -77,7 +78,8 @@ public class CookingTableBlockEntity extends BlockEntity implements BalmMenuProv
         kitchenScanner.findNeighbourCraftingBlocks(level, worldPosition);
         final var kitchen = kitchenScanner.createKitchen(level, true);
         final var craftingContext = kitchen.createCraftingContext(player);
-        final var kitchenMenuAccess = KitchenMenuAccess.create(kitchen, new ServerKitchenMenuState(craftingContext, hasNoFilterBook()));
+        final var kitchenMenuAccess = KitchenMenuAccess.create(kitchen, new ServerKitchenMenuState(craftingContext, hasNoFilterBook()),
+                menuPlayer -> Container.stillValidBlockEntity(this, menuPlayer));
         return new KitchenMenu(ModMenus.cookingTable.value(), i, player, kitchenMenuAccess);
     }
 
