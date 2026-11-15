@@ -31,11 +31,13 @@ import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class KitchenMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final KitchenImpl kitchen;
+    private final Predicate<Player> validityCheck;
 
     private final List<CraftableListingFakeSlot> recipeListingSlots = new ArrayList<>();
     private final List<CraftMatrixFakeSlot> matrixSlots = new ArrayList<>();
@@ -63,10 +65,15 @@ public class KitchenMenu extends AbstractContainerMenu {
     private ResourceLocation serversideSelectedRecipe;
 
     public KitchenMenu(MenuType<KitchenMenu> containerType, int windowId, Player player, KitchenImpl kitchen) {
+        this(containerType, windowId, player, kitchen, menuPlayer -> true);
+    }
+
+    public KitchenMenu(MenuType<KitchenMenu> containerType, int windowId, Player player, KitchenImpl kitchen, Predicate<Player> validityCheck) {
         super(containerType, windowId);
 
         this.player = player;
         this.kitchen = kitchen;
+        this.validityCheck = validityCheck;
 
         final var fakeInventory = new DefaultContainer(4 * 3 + 3 * 3);
 
@@ -154,7 +161,7 @@ public class KitchenMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return validityCheck.test(player);
     }
 
     @Override

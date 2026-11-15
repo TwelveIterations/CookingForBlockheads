@@ -14,6 +14,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -73,7 +74,8 @@ public class CookingTableBlockEntity extends BalmBlockEntity implements BalmMenu
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-        return new KitchenMenu(ModMenus.cookingTable.get(), i, player, new KitchenImpl(level, worldPosition));
+        return new KitchenMenu(ModMenus.cookingTable.get(), i, player, new KitchenImpl(level, worldPosition),
+                menuPlayer -> Container.stillValidBlockEntity(this, menuPlayer));
     }
 
     @Override
