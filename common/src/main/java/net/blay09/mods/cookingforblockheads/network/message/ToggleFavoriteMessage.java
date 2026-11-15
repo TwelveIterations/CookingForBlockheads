@@ -2,10 +2,15 @@ package net.blay09.mods.cookingforblockheads.network.message;
 
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheads;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 
 import java.util.HashSet;
 
@@ -15,33 +20,36 @@ public class ToggleFavoriteMessage implements CustomPacketPayload {
             CookingForBlockheads.MOD_ID,
             "toggle_favorite"));
 
-    private final ResourceLocation itemId;
+    private static final StreamCodec<RegistryFriendlyByteBuf, Holder<Item>> ITEM_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.ITEM);
+
+    private final Holder<Item> item;
     private final boolean favorite;
 
-    public ToggleFavoriteMessage(ResourceLocation itemId, boolean favorite) {
-        this.itemId = itemId;
+    public ToggleFavoriteMessage(Holder<Item> item, boolean favorite) {
+        this.item = item;
         this.favorite = favorite;
     }
 
-    public static void encode(FriendlyByteBuf buf, ToggleFavoriteMessage message) {
-        buf.writeResourceLocation(message.itemId);
+    public static void encode(RegistryFriendlyByteBuf buf, ToggleFavoriteMessage message) {
+        ITEM_STREAM_CODEC.encode(buf, message.item);
         buf.writeBoolean(message.favorite);
     }
 
-    public static ToggleFavoriteMessage decode(FriendlyByteBuf buf) {
-        final var itemId = buf.readResourceLocation();
+    public static ToggleFavoriteMessage decode(RegistryFriendlyByteBuf buf) {
+        final var item = ITEM_STREAM_CODEC.decode(buf);
         final var favorite = buf.readBoolean();
-        return new ToggleFavoriteMessage(itemId, favorite);
+        return new ToggleFavoriteMessage(item, favorite);
     }
 
     public static void handle(ServerPlayer player, ToggleFavoriteMessage message) {
+        final var itemId = message.item.unwrapKey().orElseThrow().location().toString();
         final var data = Balm.getHooks().getPersistentData(player);
         final var cfbData = data.getCompound("CookingForBlockheads");
         final var favoriteItems = cfbData.getCompound("FavoriteItemIds");
         if (message.favorite) {
-            favoriteItems.putBoolean(message.itemId.toString(), true);
+            favoriteItems.putBoolean(itemId, true);
         } else {
-            favoriteItems.remove(message.itemId.toString());
+            favoriteItems.remove(itemId);
         }
         cfbData.put("FavoriteItemIds", favoriteItems);
         data.put("CookingForBlockheads", cfbData);

@@ -21,7 +21,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -182,8 +181,7 @@ public class KitchenScreen extends AbstractContainerScreen<KitchenMenu> {
                 final var recipe = recipeFakeSlot.getCraftable();
                 if (recipe != null) {
                     final var itemStack = recipe.resultItem();
-                    final var itemId = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
-                    Balm.getNetworking().sendToServer(new ToggleFavoriteMessage(itemId, !isFavoriteItem(itemStack)));
+                    Balm.getNetworking().sendToServer(new ToggleFavoriteMessage(itemStack.getItemHolder(), !isFavoriteItem(itemStack)));
                     return true;
                 }
             }
