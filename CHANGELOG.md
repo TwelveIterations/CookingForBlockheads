@@ -1,1 +1,2 @@
-- Fixed recipe items displayed in fake slots being modified, possibly resulting in compatibility issues
+- Fixed kitchen menu not closing like other containers do
+- Fixed invalid items in favorites
