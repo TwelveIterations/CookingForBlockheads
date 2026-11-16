@@ -1,1 +1,2 @@
-- Fixed crash when bone-mealing fridge
+- Fixed kitchen menu not closing like other containers do
+- Fixed invalid items in favorites
