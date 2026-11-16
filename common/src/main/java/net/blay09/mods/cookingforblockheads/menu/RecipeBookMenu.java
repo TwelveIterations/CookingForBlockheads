@@ -38,10 +38,12 @@ import net.minecraft.world.item.TooltipFlag;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class RecipeBookMenu extends AbstractContainerMenu {
 
     private final Player player;
+    private final Predicate<Player> validityCheck;
 
     private final List<RecipeFakeSlot> recipeSlots = Lists.newArrayList();
     private final List<CraftMatrixFakeSlot> matrixSlots = Lists.newArrayList();
@@ -76,9 +78,14 @@ public class RecipeBookMenu extends AbstractContainerMenu {
     private boolean isInNoFilterPreview;
 
     public RecipeBookMenu(MenuType<RecipeBookMenu> containerType, int windowId, Player player) {
+        this(containerType, windowId, player, menuPlayer -> true);
+    }
+
+    public RecipeBookMenu(MenuType<RecipeBookMenu> containerType, int windowId, Player player, Predicate<Player> validityCheck) {
         super(containerType, windowId);
 
         this.player = player;
+        this.validityCheck = validityCheck;
 
         Container fakeInventory = new DefaultContainer(4 * 3 + 3 * 3);
 
@@ -179,7 +186,7 @@ public class RecipeBookMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return validityCheck.test(player);
     }
 
     @Override

@@ -14,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -83,7 +84,8 @@ public class CookingTableBlockEntity extends BalmBlockEntity implements BalmMenu
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-        RecipeBookMenu container = new RecipeBookMenu(ModMenus.cookingTable.get(), i, player).allowCrafting();
+        RecipeBookMenu container = new RecipeBookMenu(ModMenus.cookingTable.get(), i, player,
+                menuPlayer -> Container.stillValidBlockEntity(this, menuPlayer)).allowCrafting();
         if (!noFilterBook.isEmpty()) {
             container.setNoFilter();
         }
