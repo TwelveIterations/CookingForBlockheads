@@ -1,1 +1,2 @@
-- Fixed shift-clicking oven recipes still only moving a single item instead of a stack
+- Fixed kitchen menu not closing like other containers do
+- Fixed invalid items in favorites
