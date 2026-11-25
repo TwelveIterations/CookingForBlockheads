@@ -9,7 +9,7 @@ import java.math.BigInteger;
 
 public class FluidUnits {
     public static final int BUCKET = Balm.platform().name().equals("fabric") ? 81000 : 1000;
-    public static final int BOTTLE = BUCKET / 3;
+    public static final int BOTTLE = BUCKET == 81000 ? 27000 : 250;
     public static final int MILLIBUCKET = BUCKET / 1000;
 
     public static int toMillibuckets(int amount) {
