@@ -1,8 +1,9 @@
 package net.blay09.mods.cookingforblockheads.block;
 
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.blay09.mods.balm.Balm;
+import net.blay09.mods.cookingforblockheads.FluidBucketInteraction;
 import net.blay09.mods.balm.platform.fluid.FluidTank;
 import net.blay09.mods.cookingforblockheads.block.entity.ModBlockEntities;
 import net.blay09.mods.cookingforblockheads.block.entity.SinkBlockEntity;
@@ -97,12 +98,12 @@ public class SinkBlock extends BaseKitchenBlock {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SinkBlockEntity sink) {
                 FluidTank fluidTank = sink.getFluidTank();
-                if (!Balm.hooks().useFluidTank(state, level, pos, player, hand, blockHitResult)) {
+                if (!FluidBucketInteraction.use(fluidTank, player, hand)) {
                     // Special case for bottles, they can hold 1/3 of a bucket
                     if (itemStack.getItem() == Items.GLASS_BOTTLE) {
-                        int simulated = fluidTank.drain(0, Fluids.WATER, 333, true);
-                        if (simulated == 333) {
-                            fluidTank.drain(0, Fluids.WATER, 333, false);
+                        int simulated = fluidTank.drain(0, Fluids.WATER, FluidUnits.BOTTLE, true);
+                        if (simulated == FluidUnits.BOTTLE) {
+                            fluidTank.drain(0, Fluids.WATER, FluidUnits.BOTTLE, false);
                             ItemStack filledBottle = PotionContents.createItemStack(Items.POTION, Potions.WATER);
                             if (itemStack.getCount() == 1) {
                                 player.setItemInHand(hand, filledBottle);

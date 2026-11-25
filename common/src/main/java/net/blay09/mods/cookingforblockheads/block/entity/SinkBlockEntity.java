@@ -1,5 +1,6 @@
 package net.blay09.mods.cookingforblockheads.block.entity;
 
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.balm.platform.fluid.BalmFluidTankProvider;
 import net.blay09.mods.balm.platform.fluid.DefaultFluidTank;
 import net.blay09.mods.balm.platform.fluid.FluidTank;
@@ -45,7 +46,7 @@ public class SinkBlockEntity extends BlockEntity implements BalmFluidTankProvide
     private boolean isDirty;
     private boolean hasSaltFilter;
     private final KitchenRecipeProvider recipeProvider = () -> hasSaltFilter ? Set.of(SALT_FILTER_SOURCE) : Set.of();
-    private final DefaultFluidTank sinkTank = new DefaultFluidTank(16000) {
+    private final DefaultFluidTank sinkTank = new DefaultFluidTank(16 * FluidUnits.BUCKET) {
 
         @Override
         public Fluid getFluid(int slot) {
@@ -124,13 +125,13 @@ public class SinkBlockEntity extends BlockEntity implements BalmFluidTankProvide
 
     @Override
     public void saveAdditional(ValueOutput output) {
-        sinkTank.serialize(output.child("FluidTank"));
+        FluidUnits.serialize(sinkTank, output.child("FluidTank"));
         output.putBoolean("HasSaltFilter", hasSaltFilter);
     }
 
     @Override
     public void loadAdditional(ValueInput input) {
-        input.child("FluidTank").ifPresent(sinkTank::deserialize);
+        input.child("FluidTank").ifPresent(tankInput -> FluidUnits.deserialize(sinkTank, tankInput, 16 * FluidUnits.BUCKET));
         hasSaltFilter = input.getBooleanOr("HasSaltFilter", false);
     }
 
@@ -175,19 +176,19 @@ public class SinkBlockEntity extends BlockEntity implements BalmFluidTankProvide
     private record SinkIngredientToken(SinkBlockEntity milkJar, ItemStack itemStack, int count) implements IngredientToken {
         @Override
         public ItemStack peek() {
-            final var drained = milkJar.getFluidTank().drain(0, Compat.getMilkFluid(), 1000, true);
-            return drained >= 1000 ? itemStack : ItemStack.EMPTY;
+            final var drained = milkJar.getFluidTank().drain(0, Compat.getMilkFluid(), FluidUnits.BUCKET, true);
+            return drained >= FluidUnits.BUCKET ? itemStack : ItemStack.EMPTY;
         }
 
         @Override
         public ItemStack consume() {
-            final var drained = milkJar.getFluidTank().drain(0, Compat.getMilkFluid(), 1000, false);
-            return drained >= 1000 ? itemStack : ItemStack.EMPTY;
+            final var drained = milkJar.getFluidTank().drain(0, Compat.getMilkFluid(), FluidUnits.BUCKET, false);
+            return drained >= FluidUnits.BUCKET ? itemStack : ItemStack.EMPTY;
         }
 
         @Override
         public ItemStack restore(ItemStack itemStack) {
-            milkJar.getFluidTank().fill(0, Compat.getMilkFluid(), 1000, false);
+            milkJar.getFluidTank().fill(0, Compat.getMilkFluid(), FluidUnits.BUCKET, false);
             return ItemStack.EMPTY;
         }
 
@@ -203,7 +204,7 @@ public class SinkBlockEntity extends BlockEntity implements BalmFluidTankProvide
             for (final var waterItem : BuiltInRegistries.ITEM.getTagOrEmpty(ModItemTags.WATER))
                 if (ingredient.acceptsItem(waterItem)) {
                     final var waterUnitsUsed = ingredientTokens.size();
-                    final var waterUnitsAvailable = sink.getFluidTank().getAmount(0) / 1000 - waterUnitsUsed;
+                    final var waterUnitsAvailable = sink.getFluidTank().getAmount(0) / FluidUnits.BUCKET - waterUnitsUsed;
                     if (waterUnitsAvailable >= 1) {
                         return new SinkIngredientToken(sink, new ItemStack(waterItem), greedy ? waterUnitsAvailable : 1);
                     } else {
@@ -221,7 +222,7 @@ public class SinkBlockEntity extends BlockEntity implements BalmFluidTankProvide
             }
 
             final var waterUnitsUsed = ingredientTokens.size();
-            final var waterUnitsAvailable = sink.getFluidTank().getAmount(0) / 1000 - waterUnitsUsed;
+            final var waterUnitsAvailable = sink.getFluidTank().getAmount(0) / FluidUnits.BUCKET - waterUnitsUsed;
             if (waterUnitsAvailable >= 1) {
                 return new SinkIngredientToken(sink, itemStack, greedy ? waterUnitsAvailable : 1);
             } else {
