@@ -70,7 +70,7 @@ public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTank
 
             final var milkUnitsUsed = ingredientTokens.size();
             final var milkUnitsAvailable = milkJar.getFluidTank().getAmount() / FluidUnits.BUCKET - milkUnitsUsed;
-            if (milkUnitsAvailable > 1) {
+            if (milkUnitsAvailable >= 1) {
                 return new MilkJarIngredientToken(milkJar, itemStack);
             } else {
                 return null;

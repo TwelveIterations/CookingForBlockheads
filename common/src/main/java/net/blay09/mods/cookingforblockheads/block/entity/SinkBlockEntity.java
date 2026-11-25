@@ -72,7 +72,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
 
             final var milkUnitsUsed = ingredientTokens.size();
             final var milkUnitsAvailable = sink.getFluidTank().getAmount() / FluidUnits.BUCKET - milkUnitsUsed;
-            if (milkUnitsAvailable > 1) {
+            if (milkUnitsAvailable >= 1) {
                 return new SinkIngredientToken(sink, itemStack);
             } else {
                 return null;
