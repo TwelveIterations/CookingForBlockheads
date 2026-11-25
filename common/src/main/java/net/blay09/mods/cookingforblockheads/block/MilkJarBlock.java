@@ -1,7 +1,8 @@
 package net.blay09.mods.cookingforblockheads.block;
 
 import com.mojang.serialization.MapCodec;
-import net.blay09.mods.balm.api.fluid.FluidTank;
+import net.blay09.mods.cookingforblockheads.FluidUnits;
+import net.blay09.mods.cookingforblockheads.FluidBucketInteraction;
 import net.blay09.mods.cookingforblockheads.compat.Compat;
 import net.blay09.mods.cookingforblockheads.block.entity.MilkJarBlockEntity;
 import net.minecraft.ChatFormatting;
@@ -9,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -65,31 +65,8 @@ public class MilkJarBlock extends BaseKitchenBlock implements BucketPickup {
             return ItemInteractionResult.FAIL;
         }
 
-        FluidTank milkTank = milkJar.getFluidTank();
-        if (itemStack.getItem() == Items.MILK_BUCKET) {
-            if (milkTank.getAmount() <= milkTank.getCapacity() - 1000) {
-                milkTank.fill(Compat.getMilkFluid(), 1000, false);
-                if (!player.getAbilities().instabuild) {
-                    player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-                }
-            }
-            return ItemInteractionResult.SUCCESS;
-        } else if (itemStack.getItem() == Items.BUCKET) {
-            if (milkTank.getAmount() >= 1000) {
-                if (itemStack.getCount() == 1) {
-                    milkTank.drain(Compat.getMilkFluid(), 1000, false);
-                    if (!player.getAbilities().instabuild) {
-                        player.setItemInHand(hand, new ItemStack(Items.MILK_BUCKET));
-                    }
-                } else {
-                    if (player.getInventory().add(new ItemStack(Items.MILK_BUCKET))) {
-                        milkTank.drain(Compat.getMilkFluid(), 1000, false);
-                        if (!player.getAbilities().instabuild) {
-                            itemStack.shrink(1);
-                        }
-                    }
-                }
-            }
+        if (itemStack.is(Items.MILK_BUCKET) || itemStack.is(Items.BUCKET)) {
+            FluidBucketInteraction.use(milkJar.getFluidTank(), player, hand);
             return ItemInteractionResult.SUCCESS;
         }
 
@@ -105,9 +82,9 @@ public class MilkJarBlock extends BaseKitchenBlock implements BucketPickup {
     @Override
     public ItemStack pickupBlock(@Nullable Player player, LevelAccessor level, BlockPos pos, BlockState blockState) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof MilkJarBlockEntity milkJar && ((MilkJarBlockEntity) blockEntity).getFluidTank().getAmount() >= 1000) {
-            int drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), 1000, false);
-            return drained >= 1000 ? new ItemStack(Items.MILK_BUCKET) : ItemStack.EMPTY;
+        if (blockEntity instanceof MilkJarBlockEntity milkJar && milkJar.getFluidTank().getAmount() >= FluidUnits.BUCKET) {
+            int drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), FluidUnits.BUCKET, false);
+            return drained >= FluidUnits.BUCKET ? new ItemStack(Items.MILK_BUCKET) : ItemStack.EMPTY;
         }
         return ItemStack.EMPTY;
     }

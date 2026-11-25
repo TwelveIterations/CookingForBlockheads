@@ -5,6 +5,7 @@ import net.blay09.mods.balm.api.fluid.BalmFluidTankProvider;
 import net.blay09.mods.balm.api.fluid.FluidTank;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.common.BalmBlockEntity;
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheadsConfig;
 import net.blay09.mods.cookingforblockheads.api.CacheHint;
 import net.blay09.mods.cookingforblockheads.api.IngredientToken;
@@ -33,19 +34,19 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
     private record SinkIngredientToken(SinkBlockEntity milkJar, ItemStack itemStack) implements IngredientToken {
         @Override
         public ItemStack peek() {
-            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), 1000, true);
-            return drained >= 1000 ? itemStack : ItemStack.EMPTY;
+            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), FluidUnits.BUCKET, true);
+            return drained >= FluidUnits.BUCKET ? itemStack : ItemStack.EMPTY;
         }
 
         @Override
         public ItemStack consume() {
-            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), 1000, false);
-            return drained >= 1000 ? itemStack : ItemStack.EMPTY;
+            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), FluidUnits.BUCKET, false);
+            return drained >= FluidUnits.BUCKET ? itemStack : ItemStack.EMPTY;
         }
 
         @Override
         public ItemStack restore(ItemStack itemStack) {
-            milkJar.getFluidTank().fill(Compat.getMilkFluid(), 1000, false);
+            milkJar.getFluidTank().fill(Compat.getMilkFluid(), FluidUnits.BUCKET, false);
             return ItemStack.EMPTY;
         }
     }
@@ -70,7 +71,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
             }
 
             final var milkUnitsUsed = ingredientTokens.size();
-            final var milkUnitsAvailable = sink.getFluidTank().getAmount() / 1000 - milkUnitsUsed;
+            final var milkUnitsAvailable = sink.getFluidTank().getAmount() / FluidUnits.BUCKET - milkUnitsUsed;
             if (milkUnitsAvailable > 1) {
                 return new SinkIngredientToken(sink, itemStack);
             } else {
@@ -84,7 +85,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
         }
     }
 
-    private final FluidTank sinkTank = new FluidTank(16000) {
+    private final FluidTank sinkTank = new FluidTank(16 * FluidUnits.BUCKET) {
 
         @Override
         public Fluid getFluid() {
@@ -154,13 +155,13 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        tag.put("FluidTank", sinkTank.serialize());
+        tag.put("FluidTank", FluidUnits.serialize(sinkTank));
         tag.putByte("Color", (byte) color.getId());
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        sinkTank.deserialize(tag.getCompound("FluidTank"));
+        FluidUnits.deserialize(sinkTank, tag.getCompound("FluidTank"), 16 * FluidUnits.BUCKET);
         color = DyeColor.byId(tag.getByte("Color"));
     }
 

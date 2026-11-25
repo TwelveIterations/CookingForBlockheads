@@ -1,5 +1,6 @@
 package net.blay09.mods.cookingforblockheads.block.entity;
 
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheadsConfig;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheadsConfigData;
 import net.blay09.mods.cookingforblockheads.compat.Compat;
@@ -70,12 +71,12 @@ public class CowJarBlockEntity extends MilkJarBlockEntity implements IMutableNam
         if (milkTank.getAmount() < MILK_CAPACITY) {
             CookingForBlockheadsConfigData config = CookingForBlockheadsConfig.getActive();
 
-            int milkToAdd = config.cowJarMilkPerTick;
+            long milkToAdd = (long) config.cowJarMilkPerTick * FluidUnits.MILLIBUCKET;
             if (compressedCow) {
                 milkToAdd *= config.compressedCowJarMilkMultiplier;
             }
 
-            milkTank.fill(Compat.getMilkFluid(), milkToAdd, false);
+            milkTank.fill(Compat.getMilkFluid(), (int) Math.max(0, Math.min(MILK_CAPACITY, milkToAdd)), false);
             isDirty = true;
         }
 

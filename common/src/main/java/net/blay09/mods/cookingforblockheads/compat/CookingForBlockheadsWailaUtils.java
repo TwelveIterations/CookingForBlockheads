@@ -1,6 +1,7 @@
 package net.blay09.mods.cookingforblockheads.compat;
 
 import net.blay09.mods.balm.api.fluid.FluidTank;
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheads;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheadsConfig;
 import net.blay09.mods.cookingforblockheads.block.entity.*;
@@ -33,7 +34,7 @@ public class CookingForBlockheadsWailaUtils {
         }
         if (blockEntity instanceof MilkJarBlockEntity milkJar) {
             FluidTank fluidTank = milkJar.getFluidTank();
-            tooltipConsumer.accept(Component.translatable("waila.cookingforblockheads.milk_stored", fluidTank.getAmount(), fluidTank.getCapacity()));
+            tooltipConsumer.accept(Component.translatable("waila.cookingforblockheads.milk_stored", FluidUnits.toMillibuckets(fluidTank.getAmount()), FluidUnits.toMillibuckets(fluidTank.getCapacity())));
         }
     }
 
@@ -68,7 +69,7 @@ public class CookingForBlockheadsWailaUtils {
     public static void appendSinkTooltip(BlockEntity blockEntity, Player player, Consumer<Component> tooltipConsumer) {
         if (blockEntity instanceof SinkBlockEntity sink && CookingForBlockheadsConfig.getActive().sinkRequiresWater) {
             FluidTank fluidTank = sink.getFluidTank();
-            tooltipConsumer.accept(Component.translatable("waila.cookingforblockheads.water_stored", fluidTank.getAmount(), fluidTank.getCapacity()));
+            tooltipConsumer.accept(Component.translatable("waila.cookingforblockheads.water_stored", FluidUnits.toMillibuckets(fluidTank.getAmount()), FluidUnits.toMillibuckets(fluidTank.getCapacity())));
         }
     }
 
