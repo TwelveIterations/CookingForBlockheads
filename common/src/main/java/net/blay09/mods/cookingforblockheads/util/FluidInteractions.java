@@ -1,6 +1,7 @@
 package net.blay09.mods.cookingforblockheads.util;
 
 import net.blay09.mods.balm.platform.fluid.FluidTank;
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
@@ -17,8 +18,8 @@ import net.minecraft.world.level.material.Fluids;
 
 public class FluidInteractions {
 
-    private static final int BUCKET_VOLUME = 1000;
-    private static final int BOTTLE_VOLUME = 333;
+    private static final int BUCKET_VOLUME = FluidUnits.BUCKET;
+    private static final int BOTTLE_VOLUME = FluidUnits.BOTTLE;
 
     public static boolean tryInteractWithWaterTank(FluidTank fluidTank, ItemStack itemStack, Level level, BlockPos pos, Player player, InteractionHand hand) {
         if (itemStack.is(Items.BUCKET) && fluidTank.drain(0, Fluids.WATER, BUCKET_VOLUME, true) == BUCKET_VOLUME) {
