@@ -1,5 +1,6 @@
 package net.blay09.mods.cookingforblockheads.block.entity;
 
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.balm.platform.fluid.BalmFluidTankProvider;
 import net.blay09.mods.balm.platform.fluid.DefaultFluidTank;
 import net.blay09.mods.balm.platform.fluid.FluidTank;
@@ -30,7 +31,7 @@ import java.util.Collection;
 
 public class MilkJarBlockEntity extends BlockEntity implements BalmFluidTankProvider, KitchenItemProviderHolder {
 
-    protected static final int MILK_CAPACITY = 32000;
+    protected static final int MILK_CAPACITY = 32 * FluidUnits.BUCKET;
     protected final DefaultFluidTank milkTank = new DefaultFluidTank(MILK_CAPACITY) {
         @Override
         public boolean canFill(Fluid fluid) {
@@ -54,12 +55,12 @@ public class MilkJarBlockEntity extends BlockEntity implements BalmFluidTankProv
 
     @Override
     public void saveAdditional(ValueOutput output) {
-        milkTank.serialize(output.child("FluidTank"));
+        FluidUnits.serialize(milkTank, output.child("FluidTank"));
     }
 
     @Override
     public void loadAdditional(ValueInput input) {
-        input.child("FluidTank").ifPresent(milkTank::deserialize);
+        input.child("FluidTank").ifPresent(tankInput -> FluidUnits.deserialize(milkTank, tankInput, MILK_CAPACITY));
     }
 
     @Override
@@ -80,20 +81,20 @@ public class MilkJarBlockEntity extends BlockEntity implements BalmFluidTankProv
     private record MilkJarIngredientToken(MilkJarBlockEntity milkJar, ItemStack itemStack, int count) implements IngredientToken {
         @Override
         public ItemStack peek() {
-            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), 1000, true);
-            return drained >= 1000 ? itemStack : ItemStack.EMPTY;
+            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), FluidUnits.BUCKET, true);
+            return drained >= FluidUnits.BUCKET ? itemStack : ItemStack.EMPTY;
         }
 
         @Override
         public ItemStack consume() {
-            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), 1000, false);
-            return drained >= 1000 ? itemStack : ItemStack.EMPTY;
+            final var drained = milkJar.getFluidTank().drain(Compat.getMilkFluid(), FluidUnits.BUCKET, false);
+            return drained >= FluidUnits.BUCKET ? itemStack : ItemStack.EMPTY;
         }
 
         @Override
         public ItemStack restore(ItemStack itemStack) {
             if (itemStack.is(ModItemTags.MILK)) {
-                milkJar.getFluidTank().fill(Compat.getMilkFluid(), 1000, false);
+                milkJar.getFluidTank().fill(Compat.getMilkFluid(), FluidUnits.BUCKET, false);
             }
             return ItemStack.EMPTY;
         }
@@ -110,7 +111,7 @@ public class MilkJarBlockEntity extends BlockEntity implements BalmFluidTankProv
             for (final var milkItem : BuiltInRegistries.ITEM.getTagOrEmpty(ModItemTags.MILK))
                 if (ingredient.acceptsItem(milkItem)) {
                     final var milkUnitsUsed = ingredientTokens.size();
-                    final var milkUnitsAvailable = milkJar.getFluidTank().getAmount() / 1000 - milkUnitsUsed;
+                    final var milkUnitsAvailable = milkJar.getFluidTank().getAmount() / FluidUnits.BUCKET - milkUnitsUsed;
                     if (milkUnitsAvailable >= 1) {
                         return new MilkJarIngredientToken(milkJar, new ItemStack(milkItem), greedy ? milkUnitsAvailable : 1);
                     } else {
@@ -128,7 +129,7 @@ public class MilkJarBlockEntity extends BlockEntity implements BalmFluidTankProv
             }
 
             final var milkUnitsUsed = ingredientTokens.size();
-            final var milkUnitsAvailable = milkJar.getFluidTank().getAmount() / 1000 - milkUnitsUsed;
+            final var milkUnitsAvailable = milkJar.getFluidTank().getAmount() / FluidUnits.BUCKET - milkUnitsUsed;
             if (milkUnitsAvailable >= 1) {
                 return new MilkJarIngredientToken(milkJar, itemStack, greedy ? milkUnitsAvailable : 0);
             } else {

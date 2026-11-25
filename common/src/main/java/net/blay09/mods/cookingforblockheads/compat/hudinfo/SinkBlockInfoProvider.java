@@ -1,5 +1,6 @@
 package net.blay09.mods.cookingforblockheads.compat.hudinfo;
 
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.balm.platform.compatibility.hudinfo.BlockInfoContext;
 import net.blay09.mods.balm.platform.compatibility.hudinfo.BlockInfoProvider;
 import net.blay09.mods.balm.platform.compatibility.hudinfo.HudInfoOutput;
@@ -15,7 +16,7 @@ public class SinkBlockInfoProvider implements BlockInfoProvider {
                 output.text(Component.translatable("waila.cookingforblockheads.salt_filter"));
             }
             if (CookingForBlockheadsConfig.getActive().sinkRequiresWater) {
-                output.text(Component.translatable("waila.cookingforblockheads.water_stored", sink.getFluidTank().getAmount(), sink.getFluidTank().getCapacity()));
+                output.text(Component.translatable("waila.cookingforblockheads.water_stored", FluidUnits.toMillibuckets(sink.getFluidTank().getAmount()), FluidUnits.toMillibuckets(sink.getFluidTank().getCapacity())));
             }
         }
     }
