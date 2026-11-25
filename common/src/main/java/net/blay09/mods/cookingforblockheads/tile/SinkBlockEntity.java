@@ -7,6 +7,7 @@ import net.blay09.mods.balm.api.fluid.BalmFluidTankProvider;
 import net.blay09.mods.balm.api.fluid.FluidTank;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.common.BalmBlockEntity;
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheadsConfig;
 import net.blay09.mods.cookingforblockheads.api.SourceItem;
 import net.blay09.mods.cookingforblockheads.api.capability.AbstractKitchenItemProvider;
@@ -32,7 +33,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
     private class SinkItemProvider extends AbstractKitchenItemProvider {
         private final NonNullList<ItemStack> itemStacks = NonNullList.create();
         private final FluidTank fluidTank;
-        private int waterUsed;
+        private long waterUsed;
 
         public SinkItemProvider(FluidTank fluidTank) {
             this.fluidTank = fluidTank;
@@ -46,25 +47,26 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
 
         @Override
         public int getSimulatedUseCount(int slot) {
-            return waterUsed / 1000;
+            return (int) Math.min(Integer.MAX_VALUE, waterUsed / FluidUnits.BUCKET);
         }
 
         @Override
         public ItemStack useItemStack(int slot, int amount, boolean simulate, List<IKitchenItemProvider> inventories, boolean requireBucket) {
-            int availableAmount = fluidTank.getAmount();
+            long availableAmount = fluidTank.getAmount();
+            long requiredAmount = (long) amount * FluidUnits.BUCKET;
             if(simulate) {
                 availableAmount -= waterUsed;
             }
-            if (!CookingForBlockheadsConfig.getActive().sinkRequiresWater || availableAmount >= amount * 1000) {
+            if (!CookingForBlockheadsConfig.getActive().sinkRequiresWater || availableAmount >= requiredAmount) {
                 if (requireBucket && itemStacks.get(slot).getItem() == Items.MILK_BUCKET) {
                     if (!CookingRegistry.consumeBucket(inventories, simulate)) {
                         return ItemStack.EMPTY;
                     }
                 }
                 if (simulate) {
-                    waterUsed += amount * 1000;
+                    waterUsed += requiredAmount;
                 } else {
-                    fluidTank.drain(Fluids.WATER, amount * 1000, false);
+                    fluidTank.drain(Fluids.WATER, (int) Math.min(Integer.MAX_VALUE, requiredAmount), false);
                     setChanged();
                 }
                 return ContainerUtils.copyStackWithSize(itemStacks.get(slot), amount);
@@ -76,7 +78,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
         public ItemStack returnItemStack(ItemStack itemStack, SourceItem sourceItem) {
             for (ItemStack providedStack : itemStacks) {
                 if (Balm.getHooks().canItemsStack(itemStack, providedStack)) {
-                    fluidTank.fill(Fluids.WATER, 1000, false);
+                    fluidTank.fill(Fluids.WATER, FluidUnits.BUCKET, false);
                     break;
                 }
             }
@@ -91,7 +93,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
 
         @Override
         public ItemStack getStackInSlot(int slot) {
-            if (CookingForBlockheadsConfig.getActive().sinkRequiresWater && fluidTank.getAmount() - waterUsed < 1000) {
+            if (CookingForBlockheadsConfig.getActive().sinkRequiresWater && fluidTank.getAmount() - waterUsed < FluidUnits.BUCKET) {
                 return ItemStack.EMPTY;
             }
 
@@ -99,7 +101,7 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
         }
     }
 
-    private final FluidTank sinkTank = new FluidTank(16000) {
+    private final FluidTank sinkTank = new FluidTank(16 * FluidUnits.BUCKET) {
 
         @Override
         public Fluid getFluid() {
@@ -170,14 +172,14 @@ public class SinkBlockEntity extends BalmBlockEntity implements BalmFluidTankPro
     @Override
     public void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.put("FluidTank", sinkTank.serialize());
+        tag.put("FluidTank", FluidUnits.serialize(sinkTank));
         tag.putByte("Color", (byte) color.getId());
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        sinkTank.deserialize(tag.getCompound("FluidTank"));
+        FluidUnits.deserialize(sinkTank, tag.getCompound("FluidTank"), 16 * FluidUnits.BUCKET);
         color = DyeColor.byId(tag.getByte("Color"));
     }
 

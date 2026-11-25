@@ -7,6 +7,7 @@ import net.blay09.mods.balm.api.fluid.BalmFluidTankProvider;
 import net.blay09.mods.balm.api.fluid.FluidTank;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.common.BalmBlockEntity;
+import net.blay09.mods.cookingforblockheads.FluidUnits;
 import net.blay09.mods.cookingforblockheads.api.SourceItem;
 import net.blay09.mods.cookingforblockheads.api.capability.AbstractKitchenItemProvider;
 import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
@@ -25,7 +26,7 @@ import java.util.List;
 
 public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTankProvider {
 
-    protected static final int MILK_CAPACITY = 32000;
+    protected static final int MILK_CAPACITY = 32 * FluidUnits.BUCKET;
 
     private static class MilkJarItemProvider extends AbstractKitchenItemProvider {
         private final NonNullList<ItemStack> itemStacks = NonNullList.create();
@@ -44,21 +45,21 @@ public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTank
 
         @Override
         public int getSimulatedUseCount(int slot) {
-            return milkUsed / 1000;
+            return milkUsed / FluidUnits.BUCKET;
         }
 
         @Override
         public ItemStack useItemStack(int slot, int amount, boolean simulate, List<IKitchenItemProvider> inventories, boolean requireBucket) {
-            if (milkJar.getFluidTank().getAmount() - milkUsed >= amount * 1000) {
+            if (milkJar.getFluidTank().getAmount() - milkUsed >= (long) amount * FluidUnits.BUCKET) {
                 if (requireBucket && itemStacks.get(slot).getItem() == Items.MILK_BUCKET) {
                     if (!CookingRegistry.consumeBucket(inventories, simulate)) {
                         return ItemStack.EMPTY;
                     }
                 }
                 if (simulate) {
-                    milkUsed += amount * 1000;
+                    milkUsed += amount * FluidUnits.BUCKET;
                 } else {
-                    milkJar.getFluidTank().drain(Compat.getMilkFluid(), amount * 1000, false);
+                    milkJar.getFluidTank().drain(Compat.getMilkFluid(), amount * FluidUnits.BUCKET, false);
                 }
                 return ContainerUtils.copyStackWithSize(itemStacks.get(slot), amount);
             }
@@ -69,7 +70,7 @@ public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTank
         public ItemStack returnItemStack(ItemStack itemStack, SourceItem sourceItem) {
             for (ItemStack providedStack : itemStacks) {
                 if (Balm.getHooks().canItemsStack(itemStack, providedStack)) {
-                    milkJar.getFluidTank().fill(Compat.getMilkFluid(), 1000, false);
+                    milkJar.getFluidTank().fill(Compat.getMilkFluid(), FluidUnits.BUCKET, false);
                     break;
                 }
             }
@@ -84,7 +85,7 @@ public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTank
 
         @Override
         public ItemStack getStackInSlot(int slot) {
-            if (milkJar.getFluidTank().getAmount() - milkUsed < 1000) {
+            if (milkJar.getFluidTank().getAmount() - milkUsed < FluidUnits.BUCKET) {
                 return ItemStack.EMPTY;
             }
 
@@ -93,7 +94,7 @@ public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTank
 
         @Override
         public int getCountInSlot(int slot) {
-            return milkJar.getFluidTank().getAmount() / 1000;
+            return milkJar.getFluidTank().getAmount() / FluidUnits.BUCKET;
         }
     }
 
@@ -123,14 +124,14 @@ public class MilkJarBlockEntity extends BalmBlockEntity implements BalmFluidTank
     public void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
 
-        tag.put("FluidTank", milkTank.serialize());
+        tag.put("FluidTank", FluidUnits.serialize(milkTank));
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
 
-        milkTank.deserialize(tag.getCompound("FluidTank"));
+        FluidUnits.deserialize(milkTank, tag.getCompound("FluidTank"), MILK_CAPACITY);
     }
 
     @Override
